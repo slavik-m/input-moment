@@ -1,50 +1,86 @@
 require('../src/less/input-moment.less');
 require('./app.less');
+require('./react-select.less');
 
-var moment = require('moment');
+var moment = require('moment-timezone');
 var React = require('react');
 var ReactDOM = require('react-dom');
 var InputMoment = require('../src/input-moment');
-var packageJson = require('../package.json');
+var timezones = require('./timezones');
+
+var Select = require('react-select');
+
+var options = timezones.map(item => ({value: item, label: item}));
 
 var App = React.createClass({
   displayName: 'App',
 
   getInitialState() {
     return {
-      m: moment()
+      m: moment(),
+      timezone: 'America/Los_Angeles'
     };
   },
 
   render() {
+    const m = moment(this.state.m);
+    const mtz = moment(this.state.m).tz(this.state.timezone);
+
     return (
       <div className="app">
-        <h1>{packageJson.name}</h1>
-        <h2>{packageJson.description}</h2>
+        <h1 className="app-name">Time Converter</h1>
         <form>
-        <div className="input">
-          <input
-            type="text"
-            value={this.state.m.format('llll')}
-            readOnly
+          <h4>Timezone:</h4>
+          <Select
+            name="form-field-name"
+            value={this.state.timezone}
+            options={options}
+            onChange={this.handleTZChange}
           />
-        </div>
-        <InputMoment
-          moment={this.state.m}
-          onChange={this.handleChange}
-          onSave={this.handleSave}
-        />
+          <div className="input">
+            <h4>{this.state.timezone}:</h4>
+            <input
+              className="input"
+              type="text"
+              value={mtz.format('llll ZZ (HH:mm)')}
+            />
+            <h4>Browser time:</h4>
+            <input
+              className="input"
+              type="text"
+              value={this.state.m.format('llll ZZ (HH:mm)')}
+              readOnly
+            />
+            <h4>UTC:</h4>
+            <input
+              className="input"
+              type="text"
+              value={m.utc().format('llll ZZ (HH:mm)')}
+              readOnly
+            />
+            <hr />
+            <input
+              className="input"
+              type="text"
+              value={this.state.m.format('X')}
+              readOnly
+            />
+          </div>
+          <hr />
+          <InputMoment
+            moment={this.state.m}
+            onChange={this.handleTimeChange}/>
         </form>
       </div>
     );
   },
 
-  handleChange(m) {
+  handleTimeChange(m) {
     this.setState({m: m});
   },
 
-  handleSave() {
-    console.log('saved');
+  handleTZChange(option) {
+    this.setState({timezone: option.value});
   }
 });
 
